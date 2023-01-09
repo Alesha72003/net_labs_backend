@@ -4,7 +4,9 @@ const express = require("express");
 
 const app = express();
 
+console.log("Connect middlewares");
 ApplyMiddleware(app);
+console.log("Connect routes");
 ApplyRoutes(app);
 
 app.listen(3100);
