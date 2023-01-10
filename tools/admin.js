@@ -1,4 +1,5 @@
 const models = require("../models");
+const { adminGroups } = require("../middlewares/2-admin.js");
 
 module.exports = {
 
@@ -11,6 +12,7 @@ module.exports = {
         ['GroupId', 'ASC']
       ]
     })).GroupId;
+    req.session.admin = Boolean(adminGroups[req.session.middlewareGroup]);
     next();
   }
 

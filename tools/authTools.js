@@ -1,4 +1,5 @@
 const models = require("../models");
+const crypto = require("crypto");
 
 module.exports = {
 
@@ -31,11 +32,13 @@ module.exports = {
     return user ? next() : res.status(403).send("Access denied");
   },
 
-  EqualUserInParams: (req, res, next) => {
+  itsMe: (req, res, next) => {
     if (req.user.id != req.params.id) {
       return res.status(403).send("Access denied");
     }
     next();
-  }
+  },
+
+  hashPassword: password => crypto.createHash('sha256').update(password).digest("hex")
 
 };

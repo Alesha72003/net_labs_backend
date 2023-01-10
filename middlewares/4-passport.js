@@ -3,7 +3,8 @@ const LocalStrategy = require('passport-local');
 const models = require('../models');
 const crypto = require('crypto');
 const { findPriorityGroup } = require("../tools/admin");
-const { adminGroups } = require("./2-admin.js");
+const { adminGroups } = require("../middlewares/2-admin.js");
+const { hashPassword } = require("../tools/authTools");
 
 passport.use(new LocalStrategy((username, password, cb) => {
   models.User.findOne({
@@ -18,7 +19,7 @@ passport.use(new LocalStrategy((username, password, cb) => {
     if (!user) {
       return cb(null, false);
     }
-    const hash = crypto.createHash('sha256').update(password).digest("hex");
+    const hash = hashPassword(password);
     if (!crypto.timingSafeEqual(Buffer.from(user.passwordhash), Buffer.from(hash))) {
       return cb(null, false);
     }
@@ -44,7 +45,7 @@ module.exports = app => {
       res.send({
         id: req.user.id,
         username: req.user.username,
-        admin: Boolean(adminGroups[req.session.middlewareGroup]),
+        admin: req.session.admin,
         canUpdate: true,
         Groups: req.user.Groups
       })
