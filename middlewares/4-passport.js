@@ -1,11 +1,11 @@
 const passport = require("passport");
 const LocalStrategy = require('passport-local');
-const models = require('./models');
+const models = require('../models');
 const crypto = require('crypto');
 const { findPriorityGroup } = require("../tools/admin");
 const { adminGroups } = require("./2-admin.js");
 
-passport.use(new LocalStrategy((username, passport, cb) => {
+passport.use(new LocalStrategy((username, password, cb) => {
   models.User.findOne({
     where: {
       username
