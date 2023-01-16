@@ -12,7 +12,7 @@ module.exports = {
         ['GroupId', 'ASC']
       ]
     })).GroupId;
-    req.session.admin = Boolean(adminGroups[req.session.middlewareGroup]);
+    req.session.admin = adminGroups.has(req.session.middlewareGroup.toString());
     next();
   }
 

@@ -9,7 +9,8 @@ const { hashPassword } = require("../tools/authTools");
 passport.use(new LocalStrategy((username, password, cb) => {
   models.User.findOne({
     where: {
-      username
+      username,
+      isworker: true
     },
     include: {
       model: models.Group,
