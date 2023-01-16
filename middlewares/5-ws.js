@@ -33,3 +33,7 @@ module.exports = (app) => {
 module.exports.on = (type, f) => {
   handlers.push({type, f});
 }
+
+module.exports.on("close", (ws) => {
+  console.log("Websocket closed")
+})
