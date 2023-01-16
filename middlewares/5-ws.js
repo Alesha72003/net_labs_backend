@@ -11,7 +11,7 @@ module.exports = (app) => {
 
   app.ws("/ws", (ws, req) => {
     sessions[req.session.id] = ws;
-    handlers.forEach(el => {
+    handlers.filter(el => el.type != "logout").forEach(el => {
       ws.on(el.type, (e) => el.f(ws, e));
     })
   })
@@ -22,7 +22,11 @@ module.exports = (app) => {
   })
 
   onLogout((req, oldSession) => {
-    sessions[oldSession.id].close();
+    sessions[req.session.id] = sessions[oldSession.id];
+    delete sessions[oldSession.id];
+    handlers.filter(el => el.type == "logout").forEach(el => {
+      el.f(sessions[req.session.id], "logout");
+    });
   })
 };
 

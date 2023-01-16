@@ -49,6 +49,7 @@ router.get('//', mustAuthenticated, async (req, res) => {
     ]
   });
   if (req.ws) {
+    // console.log(subscribes, req.ws.subscribtions);
     (req.ws.subscribtions || []).forEach(el => {
       subscribes[el].splice(subscribes[el].indexOf(req.ws), 1);
     })
@@ -59,6 +60,7 @@ router.get('//', mustAuthenticated, async (req, res) => {
       subscribes[el.id].push(req.ws);
     });
     req.ws.subscribtions = data.map(el => el.id);
+    // console.log(subscribes, req.ws.subscribtions);
   }
   data.forEach(el => { delete el.dataValues.Group; });
   return res.send(data);
@@ -80,11 +82,14 @@ router.get('/:id', mustAuthenticated, checkAccessToTask, async (req, res) => {
   return res.send(data);
 });
 
-on("close", ws => {
+const closeLogoutHandler =  ws => {
   (ws.subscribtions || []).forEach(el => { 
     subscribes[el].splice(subscribes[el].indexOf(ws), 1);
   })
-});
+}
+
+on("close", closeLogoutHandler);
+on("logout", closeLogoutHandler);
 
 let subscribes = {};
 
