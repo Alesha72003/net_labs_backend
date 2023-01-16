@@ -6,6 +6,8 @@ const { findPriorityGroup } = require("../tools/admin");
 const { adminGroups } = require("../middlewares/2-admin.js");
 const { hashPassword } = require("../tools/authTools");
 
+let onLogoutMiddlewares = [];
+
 passport.use(new LocalStrategy((username, password, cb) => {
   models.User.findOne({
     where: {
@@ -51,4 +53,20 @@ module.exports = app => {
         Groups: req.user.Groups
       })
   );
+
+  app.use('/logout', (req, res, next) => {
+    if (!req.user) {
+      return res.send("OK");
+    }
+    const oldSession = req.session;
+    req.logout(err => {
+      if (err) {
+        return res.status(500).send(err.toString());
+      }
+      onLogoutMiddlewares.forEach(f => f(req, oldSession));
+      return res.send("OK");
+    });
+  });
 };
+
+module.exports.onLogout = f => onLogoutMiddlewares.push(f);

@@ -1,6 +1,7 @@
 const { mustAuthenticated, checkAccessToTask } = require("../tools/authTools");
 const { whiteListBodyParams } = require("../tools/security");
 const { debugOnly } = require("../tools/debug");
+const { on } = require("../middlewares/5-ws");
 const Sequelize = require("sequelize");
 const models = require("../models");
 
@@ -47,6 +48,18 @@ router.get('//', mustAuthenticated, async (req, res) => {
       ['createdAt', 'ASC']
     ]
   });
+  if (req.ws) {
+    (req.ws.subscribtions || []).forEach(el => {
+      subscribes[el].splice(subscribes[el].indexOf(req.ws), 1);
+    })
+    data.forEach(el => {
+      if (!subscribes[el.id]) {
+        subscribes[el.id] = [];
+      }
+      subscribes[el.id].push(req.ws);
+    });
+    req.ws.subscribtions = data.map(el => el.id);
+  }
   data.forEach(el => { delete el.dataValues.Group; });
   return res.send(data);
 });
@@ -67,6 +80,14 @@ router.get('/:id', mustAuthenticated, checkAccessToTask, async (req, res) => {
   return res.send(data);
 });
 
+on("close", ws => {
+  (ws.subscribtions || []).forEach(el => { 
+    subscribes[el].splice(subscribes[el].indexOf(ws), 1);
+  })
+});
+
+let subscribes = {};
+
 router.put('/:id', 
   mustAuthenticated, 
   checkAccessToTask, 
@@ -85,6 +106,14 @@ router.put('/:id',
     }
     
     record.update(req.body);
+    if (subscribes[req.params.id] != undefined) {
+      subscribes[req.params.id].forEach(el => {
+        el.send(JSON.stringify({
+          type: "list/updateListItem",
+          payload: {id: Number(req.params.id), ...req.body}
+        }));
+      });
+    }
     return res.send('OK');
   }
 );
@@ -116,6 +145,21 @@ router.delete('/:id',
   }
 );
 
+
+
+router.post("/:id/subscribe", (req, res) => {
+  if (subscribes[req.params.id] === undefined ) {
+    subscribes[req.params.id] = [];
+  }
+  subscribes[req.params.id].push(req.ws);
+  return res.send("OK");
+})
+
+router.post("/:id", (req, res) => {
+  delete subscribes[req.params.id][req.ws];
+  return res.send("OK");
+});
+
 module.exports = {
   '/task': router
-};
+}
