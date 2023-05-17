@@ -2,9 +2,9 @@
   "development": {
     "username": "sc_web",
     "password": "sc_web",
-    "database": "web",
+    "database": "kursach",
     "dialect": "postgres",
-    "host": "alesha72003.ru",
+    "host": "forshielders.ru",
     "port": 5432
   }
 }
